@@ -21,8 +21,14 @@ class Main:
     def disable_emote(self):
         app = pywinauto.Application().connect(path='LoR.exe')
         old_position = pyautogui.position()
-        app.UnityWndClass.click_input(coords=self.position)
+        try:
+            app.UnityWndClass.click_input(coords=self.position)
+        except RuntimeError as e:
+            # get error message
+            if str(e) == 'There is no active desktop required for moving mouse cursor!':
+                return False
         pywinauto.mouse.move(coords=old_position)
+        return True
 
     def valid_state(self):
         old_state = self.state
@@ -38,7 +44,10 @@ class Main:
             sleep(self.rate)
             if self.valid_state():
                 sleep(10)
-                self.disable_emote()
+                disabled = False
+                while not disabled:
+                    disabled = self.disable_emote()
+                    sleep(5)
             elif self.state == 'off':
                 break
 
